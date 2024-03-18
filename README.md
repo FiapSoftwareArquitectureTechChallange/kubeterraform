@@ -1,4 +1,3 @@
-```markdown
 # BurgerRoyale K8s
 
 ## Pré-requisitos
