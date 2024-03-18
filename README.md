@@ -1,5 +1,3 @@
-Aqui está o texto completo atualizado do `README.md`, incluindo a seção sobre a configuração do estado remoto do Terraform com o S3:
-
 ```markdown
 # BurgerRoyale K8s
 
