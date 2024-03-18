@@ -1,0 +1,30 @@
+# Ignorar arquivos de estado local do Terraform
+*.tfstate
+*.tfstate.*
+
+
+# Ignorar arquivos de plano do Terraform que podem conter informações sensíveis
+*.tfplan
+*.tfplan.*
+
+# Ignorar arquivos de configuração do diretório .terraform
+.terraform/
+
+# Ignorar arquivos de log
+crash.log
+terraform.log
+
+# Ignorar arquivos de configuração de override, que são específicos do usuário
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Ignorar arquivos de variáveis de ambiente que podem conter informações sensíveis
+.terraformrc
+terraform.rc
+*.auto.tfvars
+*.auto.tfvars.json
+
+# Ignorar diretórios que podem conter arquivos compilados
+bin/
