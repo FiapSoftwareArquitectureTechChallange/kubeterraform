@@ -110,5 +110,3 @@ Isso pode solicitar que você confirme a migração do estado local para o estad
 
 - Certifique-se de aplicar as políticas de segurança adequadas ao seu bucket S3 e à tabela DynamoDB para proteger seu estado do Terraform.
 - Nunca compartilhe seu estado do Terraform publicamente, pois ele pode conter informações sensíveis sobre sua infraestrutura.
-```
-
