@@ -3,11 +3,11 @@ module "eks" {
   version         = "~> 20.5"
   cluster_name    = var.cluster_name
   cluster_version = var.cluster_version
-  subnet_ids      = module.vpc.private_subnets
-  vpc_id          = module.vpc.vpc_id
+  subnet_ids      = [data.aws_subnet.private_subnet_1.id,data.aws_subnet.private_subnet_2.id]
+  vpc_id          = data.aws_vpc.vpc.id
   cluster_endpoint_public_access = true
   enable_cluster_creator_admin_permissions = true
-  
+
   eks_managed_node_groups = {
     node_group_burger = {
       desired_capacity = var.node_group_desired_capacity

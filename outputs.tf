@@ -1,18 +1,15 @@
-output "vpc_id" {
-  value = module.vpc.vpc_id
-}
-
-output "private_subnets" {
-  value = module.vpc.private_subnets
-}
-
-output "public_subnets" {
-  value = module.vpc.public_subnets
-}
-
-# output "nat_gateway_ids" {
-#   value = module.vpc.nat_gateway_ids
+# output "vpc_id" {
+#   value = module.vpc.vpc_id
 # }
+
+# output "private_subnets" {
+#   value = module.vpc.private_subnets
+# }
+
+# output "public_subnets" {
+#   value = module.vpc.public_subnets
+# }
+
 
 output "ecr_repository_url" {
   value = aws_ecr_repository.ecr_repository.repository_url
@@ -39,6 +36,12 @@ output "cluster_id" {
   description = "The ID of the EKS cluster."
   value       = module.eks.cluster_id
 }
+
+output "cluster_name" {
+  description = "Cluster name"
+  value       = module.eks.cluster_name
+}
+
 
 output "kubeconfig_command" {
   description = "Command to update kubeconfig with your EKS cluster. This output will be empty if the cluster is not yet created."

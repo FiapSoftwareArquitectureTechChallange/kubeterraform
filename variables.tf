@@ -5,7 +5,7 @@ variable "aws_region" {
 
 variable "project_name" {
   description = "Nome do projeto, usado para taggear os recursos."
-  default     = "burgeroyale"
+  default     = "burgerroyale"
 }
 
 variable "vpc_cidr" {
@@ -63,7 +63,7 @@ variable "tags" {
   description = "Mapa de tags aplicadas a todos os recursos criados."
   type        = map(string)
   default = {
-    App      = "burgeroyale",
+    App      = "burgerroyale",
     Ambiente = "Desenvolvimento"
   }
 }
