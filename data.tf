@@ -21,7 +21,7 @@ data "aws_vpc" "vpc" {
   }
 }
 
-data "aws_security_group" "secgroup"{
+data "aws_security_group" "secgroup" {
   tags = {
     Name = "${var.project_name}_default_security_group"
   }

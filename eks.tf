@@ -1,12 +1,12 @@
 module "eks" {
-  source          = "terraform-aws-modules/eks/aws"
-  version         = "~> 20.5"
-  cluster_name    = var.cluster_name
-  cluster_version = var.cluster_version
-  subnet_ids      = [data.aws_subnet.private_subnet_1.id,data.aws_subnet.private_subnet_2.id]
-  vpc_id          = data.aws_vpc.vpc.id
-  cluster_security_group_id = data.aws_security_group.secgroup.id
-  cluster_endpoint_public_access = true
+  source                                   = "terraform-aws-modules/eks/aws"
+  version                                  = "~> 20.5"
+  cluster_name                             = var.cluster_name
+  cluster_version                          = var.cluster_version
+  subnet_ids                               = [data.aws_subnet.private_subnet_1.id, data.aws_subnet.private_subnet_2.id]
+  vpc_id                                   = data.aws_vpc.vpc.id
+  cluster_security_group_id                = data.aws_security_group.secgroup.id
+  cluster_endpoint_public_access           = true
   enable_cluster_creator_admin_permissions = true
 
   eks_managed_node_groups = {
@@ -28,13 +28,13 @@ module "eks_blueprints_addons" {
   source  = "aws-ia/eks-blueprints-addons/aws"
   version = "~> 1.15"
 
-  oidc_provider_arn = module.eks.oidc_provider_arn
-  cluster_name      = module.eks.cluster_name
-  cluster_endpoint  = module.eks.cluster_endpoint
-  cluster_version   = module.eks.cluster_version
+  oidc_provider_arn     = module.eks.oidc_provider_arn
+  cluster_name          = module.eks.cluster_name
+  cluster_endpoint      = module.eks.cluster_endpoint
+  cluster_version       = module.eks.cluster_version
   enable_metrics_server = true
 
-    tags = {
+  tags = {
     Environment = "development"
     Project     = var.project_name
   }
