@@ -19,7 +19,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket = TERRAFORM_BUCKET_NAME
+    bucket = "${TERRAFORM_BUCKET_NAME}"
     key    = "burgerroyale-kubernets.tfstate"
     region = "us-east-1"
   }
