@@ -21,11 +21,17 @@ jobs:
           terraform_version: 1.7.2
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Set S3 bucket name
+        env:
+          TERRAFORM_BUCKET_NAME: ${{ vars.TERRAFORM_BUCKET_NAME }}
+        run: |
+          sed -i 's|${TERRAFORM_BUCKET_NAME}|'"$TERRAFORM_BUCKET_NAME"'|g' provider.tf
 
       - name: Terraform Init, Plan and Apply
         run: |
