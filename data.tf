@@ -20,3 +20,10 @@ data "aws_vpc" "vpc" {
     Name = "${var.project_name}_vpc"
   }
 }
+
+data "aws_security_group" "secgroup"{
+  tags = {
+    Name = "${var.project_name}_default_security_group"
+  }
+
+}

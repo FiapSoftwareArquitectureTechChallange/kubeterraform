@@ -5,6 +5,7 @@ module "eks" {
   cluster_version = var.cluster_version
   subnet_ids      = [data.aws_subnet.private_subnet_1.id,data.aws_subnet.private_subnet_2.id]
   vpc_id          = data.aws_vpc.vpc.id
+  cluster_security_group_id = data.aws_security_group.secgroup.id
   cluster_endpoint_public_access = true
   enable_cluster_creator_admin_permissions = true
 
