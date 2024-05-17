@@ -1,36 +1,41 @@
-name: 'Terraform CI'
+name: Terraform CI
 
 on:
   push:
     branches:
       - main
-      - develop
   pull_request:
     branches:
       - main
-      - develop
 
 jobs:
   terraform:
-    name: 'Terraform Validate'
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
-        with:
-          terraform_version: 1.7.2
-      
-      - name: Set S3 bucket name
-        env:
-          TERRAFORM_BUCKET_NAME: ${{ vars.TERRAFORM_BUCKET_NAME }}
-        run: |
-          sed -i 's|${TERRAFORM_BUCKET_NAME}|'"$TERRAFORM_BUCKET_NAME"'|g' provider.tf
-      
-      - name: Terraform Init and Validate
-        run: |
-          terraform init
-          terraform validate
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+    
+    - name: Set S3 bucket name
+      env:
+        TERRAFORM_BUCKET_NAME: ${{ vars.TERRAFORM_BUCKET_NAME }}
+      run: |
+        sed -i 's|${TERRAFORM_BUCKET_NAME}|'"$TERRAFORM_BUCKET_NAME"'|g' provider.tf
+
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Validate
+      run: terraform validate
+
+    - name: Terraform Plan
+      run: terraform plan -out=plan.tfplan
+
+    - name: Upload Plan
+      uses: actions/upload-artifact@v2
+      with:
+        name: terraform-plan
+        path: plan.tfplan
