@@ -1,21 +1,35 @@
-module "eks" {
-  source                                   = "terraform-aws-modules/eks/aws"
-  version                                  = "~> 20.5"
-  cluster_name                             = var.cluster_name
-  cluster_version                          = var.cluster_version
-  subnet_ids                               = [data.aws_subnet.private_subnet_1.id, data.aws_subnet.private_subnet_2.id]
-  vpc_id                                   = data.aws_vpc.vpc.id
-  cluster_security_group_id                = data.aws_security_group.secgroup.id
-  cluster_endpoint_public_access           = true
-  enable_cluster_creator_admin_permissions = true
+locals {
+  account_id = data.aws_caller_identity.current.account_id
+  LabRoleArn = "arn:aws:iam::${local.account_id}:role/${var.LabRoleName}"
+  PrincipalArn = "arn:aws:iam::${local.account_id}:role/${var.PrincipalRoleName}"
+}
 
-  eks_managed_node_groups = {
-    node_group_burger = {
-      desired_capacity = var.node_group_desired_capacity
-      max_capacity     = var.node_group_max_capacity
-      min_capacity     = var.node_group_min_capacity
-      instance_type    = var.node_group_instance_type
-    }
+resource "aws_security_group" "burgerroyale_default_security_group" {
+  vpc_id = data.aws_vpc.vpc.id
+
+  tags = {
+    Name = "${var.project_name}_default_security_group"
+  }
+}
+
+resource "aws_security_group_rule" "allow_eks_to_rds" {
+  type                     = "ingress"
+  from_port                = 1433  
+  to_port                  = 1433
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.burgerroyale_default_security_group.id
+  source_security_group_id = data.aws_security_group.secgroup.id
+}
+
+resource "aws_eks_cluster" "burgercluster" {
+  name     = var.cluster_name
+  role_arn = local.LabRoleArn
+  version  = var.cluster_version
+ 
+ vpc_config {
+    subnet_ids             = [data.aws_subnet.private_subnet_1.id, data.aws_subnet.private_subnet_2.id]
+    security_group_ids     = [data.aws_security_group.secgroup.id]
+    endpoint_public_access = true
   }
 
   tags = {
@@ -24,57 +38,80 @@ module "eks" {
   }
 }
 
-module "eks_blueprints_addons" {
-  source  = "aws-ia/eks-blueprints-addons/aws"
-  version = "~> 1.15"
+resource "aws_eks_node_group" "node_group_burger" {
+  cluster_name    = aws_eks_cluster.burgercluster.name
+  node_group_name = "node_group_burger"
+  node_role_arn   = local.LabRoleArn
 
-  oidc_provider_arn     = module.eks.oidc_provider_arn
-  cluster_name          = module.eks.cluster_name
-  cluster_endpoint      = module.eks.cluster_endpoint
-  cluster_version       = module.eks.cluster_version
-  enable_metrics_server = true
+  subnet_ids = [data.aws_subnet.private_subnet_1.id, data.aws_subnet.private_subnet_2.id]
+
+  scaling_config {
+    desired_size = var.node_group_desired_capacity
+    max_size     = var.node_group_max_capacity
+    min_size     = var.node_group_min_capacity
+  }
+
+  instance_types = [var.node_group_instance_type]
 
   tags = {
     Environment = "development"
     Project     = var.project_name
   }
+}
 
-  depends_on = [
-    module.eks
-  ]
+resource "aws_eks_addon" "vpc_cni" {
+  cluster_name  = aws_eks_cluster.burgercluster.name
+  addon_name    = "vpc-cni"
+  addon_version = "v1.18.1-eksbuild.1"
+
+  tags = {
+    Environment = "development"
+    Project     = var.project_name
+  }
 }
 
 
-resource "helm_release" "csi-secrets-store" {
-  name       = "csi-secrets-store"
-  repository = "https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts"
-  chart      = "secrets-store-csi-driver"
+resource "helm_release" "metrics_server" {
+  name       = "metrics-server"
+  repository = "https://kubernetes-sigs.github.io/metrics-server/"
+  chart      = "metrics-server"
   namespace  = "kube-system"
 
   set {
-    name  = "syncSecret.enabled"
-    value = "true"
+    name  = "args"
+    value = "{--kubelet-preferred-address-types=InternalIP}"
   }
+
   set {
-    name  = "enableSecretRotation"
-    value = "true"
+    name  = "replicas"
+    value = "2"
   }
 
   depends_on = [
-    module.eks,
-    module.eks_blueprints_addons
+    aws_eks_cluster.burgercluster,
+    aws_eks_addon.vpc_cni
   ]
 }
 
-resource "helm_release" "secrets-provider-aws" {
-  name       = "secrets-provider-aws"
-  repository = "https://aws.github.io/secrets-store-csi-driver-provider-aws"
-  chart      = "secrets-store-csi-driver-provider-aws"
-  namespace  = "kube-system"
+resource "aws_eks_access_policy_association" "policy" {
+  cluster_name  = aws_eks_cluster.burgercluster.name
+  principal_arn = local.PrincipalArn
+  policy_arn    = var.policyarn
+  access_scope {
+    type = "cluster"
+  }
+  depends_on = [
+    aws_eks_cluster.burgercluster
+  ]
+}
+
+resource "aws_eks_access_entry" "access" {
+  cluster_name      = aws_eks_cluster.burgercluster.name
+  principal_arn     = local.PrincipalArn
+  kubernetes_groups = ["fiap", "pos-tech"]
+  type              = "STANDARD"
 
   depends_on = [
-    module.eks,
-    module.eks_blueprints_addons,
-    helm_release.csi-secrets-store
+    aws_eks_cluster.burgercluster
   ]
 }

@@ -56,9 +56,20 @@ variable "node_group_instance_type" {
   default     = "t2.micro"
 }
 
-variable "AWSAccount" {
-  default = "992382847853"
+variable "LabRoleName" {
+  description = "Name for the LabRole IAM role"
+  default     = "LabRole"
 }
+
+variable "PrincipalRoleName" {
+  description = "Name for the Principal IAM role"
+  default     = "voclabs"
+}
+
+variable "policyarn" {
+  default = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+}
+
 variable "tags" {
   description = "Mapa de tags aplicadas a todos os recursos criados."
   type        = map(string)
@@ -66,4 +77,8 @@ variable "tags" {
     App      = "burgerroyale",
     Ambiente = "Desenvolvimento"
   }
+}
+
+variable "acessConfig" {
+  default = "API_AND_CONFIG_MAP"
 }
