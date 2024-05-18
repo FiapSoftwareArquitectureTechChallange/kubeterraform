@@ -1,30 +1,35 @@
-name: Terraform CD
+name: Terraform AWS
 
 on:
-  workflow_run:
-    workflows: ["Terraform CI"]
-    types:
-      - completed
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'README.md'
+      - '.gitignore'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
 
 jobs:
-  terraform:
+  validation:
+    name: Terraform Validate and Plan
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-
+    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+    - name: Checkout tf code in runner environment
+      uses: actions/checkout@v3.5.2
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-
-    - name: Configure AWS Credentials
+    - name: Configure AWS Credentials Action For GitHub Actions
       uses: aws-actions/configure-aws-credentials@v2
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-        aws-region: ${{ vars.AWS_REGION }}
+       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+       aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+       aws-region: ${{ vars.AWS_REGION }}
+
+    - name: Setup Terraform CLI
+      uses: hashicorp/setup-terraform@v2.0.2
 
     - name: Set S3 bucket name
       env:
@@ -32,14 +37,46 @@ jobs:
       run: |
         sed -i 's|${TERRAFORM_BUCKET_NAME}|'"$TERRAFORM_BUCKET_NAME"'|g' provider.tf
 
-    - name: Download Plan
-      uses: actions/download-artifact@v2
+    - name: Terraform init
+      run: terraform init
+      
+    - name: Terraform validate
+      run: terraform validate
+        
+    - name: Terraform plan
+      run: |     
+        terraform plan
+
+  apply:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    needs: validation
+    
+    steps:
+    - name: Checkout tf code in runner environment
+      uses: actions/checkout@v3.5.2
+
+    - name: Configure AWS Credentials Action For GitHub Actions
+      uses: aws-actions/configure-aws-credentials@v2
       with:
-        name: terraform-plan
-        path: plan.tfplan
+       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+       aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+       aws-region: ${{ vars.AWS_REGION }}
 
-    - name: Terraform Apply
-      run: terraform apply plan.tfplan
+    - name: Setup Terraform CLI
+      uses: hashicorp/setup-terraform@v2.0.2
 
-    - name: Notify deployment success
-      run: echo "Deployment successful!"
+    - name: Set S3 bucket name
+      env:
+        TERRAFORM_BUCKET_NAME: ${{ vars.TERRAFORM_BUCKET_NAME }}
+      run: |
+        sed -i 's|${TERRAFORM_BUCKET_NAME}|'"$TERRAFORM_BUCKET_NAME"'|g' provider.tf
+
+    - name: Terraform init
+      run: terraform init
+
+    - name: Terraform apply
+      run: |     
+        terraform apply -auto-approve"
