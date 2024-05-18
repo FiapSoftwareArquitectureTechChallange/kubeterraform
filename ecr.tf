@@ -7,7 +7,7 @@ resource "aws_ecr_repository" "ecr_repository" {
   }
 }
 
-resource "aws_ecr_repository" "ecr_repository" {
+resource "aws_ecr_repository" "payment_ecr_repository" {
   name         = "${var.project_name}-payment-ecr"
   force_delete = true
   tags = {
@@ -16,7 +16,7 @@ resource "aws_ecr_repository" "ecr_repository" {
   }
 }
 
-resource "aws_ecr_repository" "ecr_repository" {
+resource "aws_ecr_repository" "kitchen_ecr_repository" {
   name         = "${var.project_name}-kitchen-ecr"
   force_delete = true
   tags = {
