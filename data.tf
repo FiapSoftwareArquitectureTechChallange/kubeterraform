@@ -25,22 +25,7 @@ data "aws_vpc" "vpc" {
 data "aws_security_group" "secgroup" {
   filter {
     name   = "tag:Name"
-    values = ["${var.project_name}_default_security_group"]
-  }
-
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.vpc.id]
-  }
-
-    filter {
-    name   = "tag:Ambiente"
-    values = ["Desenvolvimento"]
-  }
-
-  filter {
-    name   = "tag:App"
-    values = ["burgerroyale"]
+    values = ["burgerroyale_default_security_group"]
   }
 }
 
