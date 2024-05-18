@@ -4,20 +4,12 @@ locals {
   PrincipalArn = "arn:aws:iam::${local.account_id}:role/${var.PrincipalRoleName}"
 }
 
-resource "aws_security_group" "burgerroyale_default_security_group" {
-  vpc_id = data.aws_vpc.vpc.id
-
-  tags = {
-    Name = "${var.project_name}_default_security_group"
-  }
-}
-
 resource "aws_security_group_rule" "allow_eks_to_rds" {
   type                     = "ingress"
   from_port                = 1433  
   to_port                  = 1433
   protocol                 = "tcp"
-  security_group_id        = aws_security_group.burgerroyale_default_security_group.id
+  security_group_id        = data.aws_security_group.secgroup.id
   source_security_group_id = data.aws_security_group.secgroup.id
 }
 
@@ -31,6 +23,10 @@ resource "aws_eks_cluster" "burgercluster" {
     security_group_ids     = [data.aws_security_group.secgroup.id]
     endpoint_public_access = true
   }
+  
+  access_config {
+    authentication_mode = var.acessConfig
+  } 
 
   tags = {
     Environment = "development"
@@ -110,6 +106,15 @@ resource "aws_eks_access_entry" "access" {
   principal_arn     = local.PrincipalArn
   kubernetes_groups = ["fiap", "pos-tech"]
   type              = "STANDARD"
+
+  lifecycle {
+    ignore_changes = [
+      cluster_name,
+      principal_arn,
+      kubernetes_groups,
+      type,
+    ]
+  }
 
   depends_on = [
     aws_eks_cluster.burgercluster

@@ -18,6 +18,7 @@ terraform {
 
   backend "s3" {
     bucket = "${TERRAFORM_BUCKET_NAME}"
+    # bucket = "terraformfiap"
     key    = "burgerroyale-kubernets.tfstate"
     region = "us-east-1"
   }
@@ -40,7 +41,7 @@ provider "kubernetes" {
     command     = "aws"
     args        = ["eks", "get-token", "--cluster-name", data.aws_eks_cluster.burgercluster.name]
   }
-
+#  config_path = "~/.kube/config"
 }
 
 provider "helm" {
@@ -53,6 +54,8 @@ provider "helm" {
       command     = "aws"
       args        = ["eks", "get-token", "--cluster-name", data.aws_eks_cluster.burgercluster.name]
     }
+
+    #  config_path = "~/.kube/config"
   }
 }
 
